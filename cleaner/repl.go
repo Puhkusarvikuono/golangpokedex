@@ -1,7 +1,7 @@
 package cleaner
 import ("strings")
 
-func cleanInput(text string) []string {
+func CleanInput(text string) []string {
 	// cleanInput splits text into lowercase words, trimming whitespace.
 	// Note: this could also be implemented with strings.Fields after
 	// trimming + lowercasing, but this version is expanded for clarity.
