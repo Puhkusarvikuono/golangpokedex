@@ -27,11 +27,20 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name				string
 	description	string
-	callback		func() error
+	callback		func(*Config) error
+}
+
+type Config struct {
+	next			string
+	previous	string
 }
 
 func startRepl() {
 	scanner := bufio.NewScanner(os.Stdin)
+	cfg := &Config{
+		next: "",
+		previous: "",
+	}
 	commands := map[string]cliCommand{
 		"exit": {
 			name: 				"exit",
@@ -54,7 +63,7 @@ func startRepl() {
 		}
 		input := cleanInput(rawInput)
 		if commandFunc, exists := commands[input[0]]; exists {
-			commandFunc.callback()
+			commandFunc.callback(cfg)
 		} else {
 			fmt.Println("Please input a command. Unknown command:", input[0])
 		}
