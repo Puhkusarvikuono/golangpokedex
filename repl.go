@@ -30,17 +30,9 @@ type cliCommand struct {
 	callback		func(*Config) error
 }
 
-type Config struct {
-	next			string
-	previous	string
-}
-
-func startRepl() {
+func startRepl(cfg *Config) {
 	scanner := bufio.NewScanner(os.Stdin)
-	cfg := &Config{
-		next: "",
-		previous: "",
-	}
+
 	commands := map[string]cliCommand{
 		"exit": {
 			name: 				"exit",
@@ -51,6 +43,11 @@ func startRepl() {
 			name:					"help",
 			description:	"Displays a help message",
 			callback:			commandHelp,	
+		},
+		"map": {
+			name:					"map",
+			description:	"Displays the names of 20 location areas in the Pokemon world. Each subsequent call to map displays 20 additional locations.",
+			callback:			commandMap,
 		},
 	}
 	for ;; {
@@ -63,7 +60,11 @@ func startRepl() {
 		}
 		input := cleanInput(rawInput)
 		if commandFunc, exists := commands[input[0]]; exists {
-			commandFunc.callback(cfg)
+			err := commandFunc.callback(cfg)
+			if err != nil {
+				fmt.Println("Command failed:", err)
+			}
+
 		} else {
 			fmt.Println("Please input a command. Unknown command:", input[0])
 		}
