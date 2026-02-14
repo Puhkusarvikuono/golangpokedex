@@ -33,23 +33,8 @@ type cliCommand struct {
 func startRepl(cfg *Config) {
 	scanner := bufio.NewScanner(os.Stdin)
 
-	commands := map[string]cliCommand{
-		"exit": {
-			name: 				"exit",
-			description:	"Exit the Pokedex",
-			callback: 		commandExit,
-		},
-		"help": {
-			name:					"help",
-			description:	"Displays a help message",
-			callback:			commandHelp,	
-		},
-		"map": {
-			name:					"map",
-			description:	"Displays the names of 20 location areas in the Pokemon world. Each subsequent call to map displays 20 additional locations.",
-			callback:			commandMap,
-		},
-	}
+	commands := getCommands()
+
 	for ;; {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
@@ -74,4 +59,28 @@ func startRepl(cfg *Config) {
 	}
 }
 
-
+func getCommands() (map[string]cliCommand) {
+	commands := map[string]cliCommand{
+		"exit": {
+			name: 				"exit",
+			description:	"Exit the Pokedex",
+			callback: 		commandExit,
+		},
+		"help": {
+			name:					"help",
+			description:	"Displays a help message",
+			callback:			commandHelp,	
+		},
+		"map": {
+			name:					"map",
+			description:	"Displays the names of 20 location areas in the Pokemon world. Each subsequent call to map displays 20 additional locations.",
+			callback:			commandMap,
+		},
+		"mapb": {
+			name: 				"map back",
+			description:	"Displays the previous 20 location areas of the map command.",
+			callback:			commandMapb,
+		},
+	}
+	return commands
+}

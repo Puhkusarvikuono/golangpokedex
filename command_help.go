@@ -5,6 +5,10 @@ import (
 )
 
 func commandHelp(c *Config) error {
-	fmt.Println("Welcome to the Pokedex!\nUsage:\nhelp: Displays a help message\nexit: Exit the Pokedex")
+	commands := getCommands()
+	fmt.Println("Welcome to the Pokedex!\nUsage:")
+	for _, item := range commands {
+		fmt.Printf("Command name: %s \nDescription: %s \n", item.name, item.description)
+	}
 	return nil
 }
