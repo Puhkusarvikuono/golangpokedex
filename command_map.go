@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"encoding/json"
 )
 // We'll pop these in the api files 
@@ -17,17 +16,11 @@ type result struct {
 }
 
 func commandMap(c *Config) error {
-	// Temporary dummy file to mimic the real API
-	dat, err := os.ReadFile("./cache.json")
+
+	dat, err := c.Pokeapi.GetLocationPage(c.Next)
 	if err != nil {
 		return err
 	}
-	// API call here, we get data, pass on the config
-	/* decide  which URL to use (cfg.Next / cfg.Previous / nil)
-call cfg.PokeClient.ListLocationAreas(url)
-get some data 
-print names from data 
-store cfg.Next/cfg.Previous from the response */
 
 	r := response{}
 	err = json.Unmarshal(dat, &r)
