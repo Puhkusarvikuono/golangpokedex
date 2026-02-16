@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-func commandMap(c *Config) error {
+func commandMap(c *Config, args []string) error {
 
 	res, err := c.Pokeapi.FetchLocationResponse(c.Next)
 	if err != nil {
@@ -22,7 +22,7 @@ func commandMap(c *Config) error {
 	return nil
 }
 
-func commandMapb(c *Config) error {
+func commandMapb(c *Config, args []string) error {
 
 	if c.Previous == nil {
 		return errors.New("You're on the first page")

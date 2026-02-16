@@ -25,9 +25,9 @@ func cleanInput(text string) []string {
 }
 
 type cliCommand struct {
-	name				string
-	description	string
-	callback		func(*Config) error
+	name					string
+	description		string
+	callback			func(*Config, []string) error
 }
 
 func startRepl(cfg *Config) {
@@ -44,14 +44,19 @@ func startRepl(cfg *Config) {
 			continue
 		}
 		input := cleanInput(rawInput)
-		if commandFunc, exists := commands[input[0]]; exists {
-			err := commandFunc.callback(cfg)
+		cmdName := input[0]
+		args := []string{}
+		if len(input) > 1 {
+			args = input[1:]
+		}
+		if commandFunc, exists := commands[cmdName]; exists {
+			err := commandFunc.callback(cfg, args)
 			if err != nil {
-				fmt.Println("Command failed:", err)
+				fmt.Println(err)
 			}
-
 		} else {
 			fmt.Println("Please input a command. Unknown command:", input[0])
+			continue
 		}
 		if err := scanner.Err(); err != nil {
 			fmt.Fprintln(os.Stderr, "reading input:", err)
@@ -80,6 +85,11 @@ func getCommands() (map[string]cliCommand) {
 			name: 				"map back",
 			description:	"Displays the previous 20 location areas of the map command.",
 			callback:			commandMapb,
+		},
+		"explore": {
+			name:					"explore",
+			description:	"Displays all Pokémon located in an area. Takes the name of the location area as an argument. Example: 'explore pastoria-city-area'.",
+			callback:			commandExplore,
 		},
 	}
 	return commands

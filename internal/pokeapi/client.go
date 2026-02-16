@@ -6,17 +6,20 @@ import (
 	"net/http"
 	"time"
 	"encoding/json"
+	"github.com/Puhkusarvikuono/golangpokedex/internal/pokecache"
 )
 
 type Client struct {
 	baseURL			string
-	httpClient	*http.Client	
+	httpClient	*http.Client
+	cache				pokecache.Cache
 }
 
-func NewClient() *Client {
+func NewClient(cacheInterval time.Duration) *Client {
 	myClient := Client{
 		baseURL: "https://pokeapi.co/api/v2/location-area/",
 		httpClient: &http.Client{Timeout: 5 * time.Second},
+		cache: pokecache.NewCache(cacheInterval),
 	}
 	return &myClient
 }
@@ -37,6 +40,17 @@ func (c *Client) FetchLocationResponse(url *string) (LocationAreaResponse, error
 	if url != nil {
 		target = *url
 	}
+
+	val, ok := c.cache.Get(target)
+	if ok {
+		err := json.Unmarshal(val, &locResponse)
+		if err != nil {
+			return LocationAreaResponse{}, err
+		}
+		return locResponse, nil
+	}
+
+
 	req, err := http.NewRequest("GET", target, nil)
 	if err != nil {
 		return locResponse, err
@@ -57,6 +71,8 @@ func (c *Client) FetchLocationResponse(url *string) (LocationAreaResponse, error
 	if err != nil {
 		return locResponse, err
 	}
+
+	c.cache.Add(target, body)
 	
 	err = json.Unmarshal(body, &locResponse)
 	if err != nil {

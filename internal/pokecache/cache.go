@@ -1,13 +1,12 @@
 package pokecache
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
 
-type cache struct {
-	CacheEntry		map[string]CacheEntry
+type Cache struct {
+	CacheEntries	map[string]CacheEntry
 	mu						sync.Mutex
 }
 
@@ -16,36 +15,47 @@ type CacheEntry struct {
 	val					[]byte
 }
 
-func NewCache(interval int) (cache, error) {
-	// calls cache.reapLoop()
-	// so maybe pass interval for time.Duration
-	newCache, err := cache{
-		CacheEntry: //something
-		mu: //something
+func NewCache(interval time.Duration) Cache {
+	newCache := Cache{
+		CacheEntries: make(map[string]CacheEntry),
 	}
-	if err != nil {
-		return nil, err
-	}
-	return newCache, nil
+	go newCache.reapLoop(interval)
+	return newCache
 }
 
-func (c cache) cache.Add(key string, val []byte) () {
+func (c *Cache) Add(key string, val []byte) {
 	//sync.Mutex to protect map
-	//adds a new entry
+	c.mu.Lock()
+	c.CacheEntries[key] = CacheEntry{
+		createdAt: 	time.Now(), 
+		val:				val,
+	}
+	c.mu.Unlock()
 } 
 
-func (c cache) cache.Get(key string) ([]byte, bool) {
-	//sync.Mutex to protect map
-	// true if entry is found false if not	
-	// check if "key" in cache
-	// Return cache entry
+func (c *Cache) Get(getKey string) ([]byte, bool) {
+	c.mu.Lock()
+	for cacheKey, cacheValue := range c.CacheEntries {
+		if getKey == cacheKey {
+			c.mu.Unlock()
+			return cacheValue.val, true
+		}
+	}
+	c.mu.Unlock()
+	return nil, false
 }
 
-func (c cache) cache.reapLoop() {
-	//sync.Mutex to protect map
-	//each time an interval (time.Duration newCache) passes it should remove any entries
-	//that are older than the interval
-	// If interval = 5s, entry 7s old will be removed
-	// time.Ticker perhaps see tips
-} 
-
+func (c *Cache) reapLoop(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for range ticker.C {
+		start := time.Now()
+		c.mu.Lock()
+		for key, value := range c.CacheEntries {
+			if start.Sub(value.createdAt) >= interval {
+				delete(c.CacheEntries, key)
+			}
+		}
+		c.mu.Unlock()
+	}
+}
