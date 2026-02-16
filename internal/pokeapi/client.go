@@ -2,7 +2,7 @@
 package pokeapi
 import (
 	"io"
-	"log"
+	"fmt"
 	"net/http"
 	"time"
 	"encoding/json"
@@ -27,11 +27,24 @@ func NewClient(cacheInterval time.Duration) *Client {
 type LocationAreaResponse struct {
 	Next					*string			`json:"next"`
 	Previous			*string			`json:"previous"`
-	Results				[]result		`json:"results"`
+	Results				[]Result		`json:"results"`
 }
 
-type result struct {
-	Name					string			`json:"name"`
+type Result struct {
+	Name								string												`json:"name"`
+}
+
+type ExploreAreaResponse struct {
+	PokemonEncounters			[]PokemonEncounter					`json:"pokemon_encounters"`
+}
+
+type PokemonEncounter struct {
+	Pokemon			Pokemon			`json:"pokemon"`
+}
+
+type Pokemon struct {
+	Name			string		`json:"name"`
+	URL				string		`json:"url"`
 }
 
 func (c *Client) FetchLocationResponse(url *string) (LocationAreaResponse, error) {
@@ -40,7 +53,6 @@ func (c *Client) FetchLocationResponse(url *string) (LocationAreaResponse, error
 	if url != nil {
 		target = *url
 	}
-
 	val, ok := c.cache.Get(target)
 	if ok {
 		err := json.Unmarshal(val, &locResponse)
@@ -50,15 +62,83 @@ func (c *Client) FetchLocationResponse(url *string) (LocationAreaResponse, error
 		return locResponse, nil
 	}
 
-
-	req, err := http.NewRequest("GET", target, nil)
+	body, err := c.HTTPGetResponse(target)
 	if err != nil {
 		return locResponse, err
+	}
+	
+	c.cache.Add(target, body)
+	
+	err = json.Unmarshal(body, &locResponse)
+	if err != nil {
+		return LocationAreaResponse{}, err
+	}
+
+	return locResponse, nil
+
+}
+
+func (c *Client) ExploreLocationResponse(areaName string) (ExploreAreaResponse, error) {
+	locResponse := ExploreAreaResponse{}
+
+	target := c.baseURL + areaName + "/"
+
+	val, ok := c.cache.Get(target)
+	if ok {
+		err := json.Unmarshal(val, &locResponse)
+		if err != nil {
+			return locResponse, err
+		}
+		return locResponse, nil
+	}
+
+	body, err := c.HTTPGetResponse(target)
+	if err != nil {
+		return locResponse, err
+	}
+//Rest can be done in another method for both fetch and explore
+//	req, err := http.NewRequest("GET", target, nil)
+//	if err != nil {
+//		return locResponse, err
+//	}
+//
+//	res, err := c.httpClient.Do(req)
+//	if err != nil {
+//		return locResponse, err
+//	}
+//
+//	defer res.Body.Close()
+//
+//	body, err := io.ReadAll(res.Body)
+//
+//	if res.StatusCode > 299 {
+//		err = fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+//		return locResponse, err
+//	}
+//	if err != nil {
+//		return locResponse, err
+//	}
+//
+	c.cache.Add(target, body)
+	
+	err = json.Unmarshal(body, &locResponse)
+	if err != nil {
+		return ExploreAreaResponse{}, err
+	}
+
+	return locResponse, nil
+
+}
+
+func (c *Client) HTTPGetResponse(target string) ([]byte, error) {
+	req, err := http.NewRequest("GET", target, nil)
+	if err != nil {
+		return nil, err
 	}
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return locResponse, err
+		return nil, err
 	}
 
 	defer res.Body.Close()
@@ -66,19 +146,11 @@ func (c *Client) FetchLocationResponse(url *string) (LocationAreaResponse, error
 	body, err := io.ReadAll(res.Body)
 
 	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+		err = fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+		return nil, err
 	}
 	if err != nil {
-		return locResponse, err
+		return nil, err
 	}
-
-	c.cache.Add(target, body)
-	
-	err = json.Unmarshal(body, &locResponse)
-	if err != nil {
-		return locResponse, err
-	}
-
-	return locResponse, nil
-
+	return body, nil
 }

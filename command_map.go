@@ -24,6 +24,10 @@ func commandMap(c *Config, args []string) error {
 
 func commandMapb(c *Config, args []string) error {
 
+	if c.Next == nil {
+		return errors.New("Use 'map' command to search.")
+	}
+
 	if c.Previous == nil {
 		return errors.New("You're on the first page")
 	}
