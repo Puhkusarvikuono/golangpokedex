@@ -8,6 +8,7 @@ type Config struct {
 	Next			*string
 	Previous	*string
 	Pokeapi 	*pokeapi.Client
+	Pokedex		map[string]pokeapi.Pokemon
 }
 
 func main() {
@@ -16,6 +17,7 @@ func main() {
 		Next: nil,
 		Previous: nil,
 		Pokeapi: pokeapi.NewClient(cacheInterval),
+		Pokedex: make(map[string]pokeapi.Pokemon),
 	}
 	startRepl(&cfg)
 }

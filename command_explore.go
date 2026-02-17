@@ -7,11 +7,11 @@ import (
 
 func commandExplore(c *Config, args []string) error {
 
-	targetArea := args[0]
 	if len(args) == 0 {
 		return errors.New("Please provide argument. Type 'help' for commands.")
 	}
 	
+	targetArea := args[0]
 	res, err := c.Pokeapi.ExploreLocationResponse(targetArea)
 	if err != nil {
 		return err

@@ -4,6 +4,7 @@ import (
 	"io"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 	"encoding/json"
 	"github.com/Puhkusarvikuono/golangpokedex/internal/pokecache"
@@ -43,9 +44,30 @@ type PokemonEncounter struct {
 }
 
 type Pokemon struct {
-	Name			string		`json:"name"`
-	URL				string		`json:"url"`
+	Name							string					`json:"name"`
+	URL								string					`json:"url"`
+	BaseExperience		int							`json:"base_experience"`
+	Height						int							`json:"height"`
+	Weight						int							`json:"weight"`
+	Stats							[]PokemonStats	`json:"stats"`
+	Types							[]PokemonTypes	`json:"types"`
 }
+
+type PokemonStats struct {
+		BaseStat		int				`json:"base_stat"`
+		Name 				string		`json:"name"`
+		URL  				string	 	`json:"url"`
+}
+
+type PokemonTypes struct {
+		Slot				int							`json:"slot"`
+		Type				[]PokemonType			`json:"type"`
+}
+
+type PokemonType struct { 
+		Name string `json:"name"`
+		URL  				string	 	`json:"url"`
+} 
 
 func (c *Client) FetchLocationResponse(url *string) (LocationAreaResponse, error) {
 	locResponse := LocationAreaResponse{}
@@ -96,29 +118,7 @@ func (c *Client) ExploreLocationResponse(areaName string) (ExploreAreaResponse, 
 	if err != nil {
 		return locResponse, err
 	}
-//Rest can be done in another method for both fetch and explore
-//	req, err := http.NewRequest("GET", target, nil)
-//	if err != nil {
-//		return locResponse, err
-//	}
-//
-//	res, err := c.httpClient.Do(req)
-//	if err != nil {
-//		return locResponse, err
-//	}
-//
-//	defer res.Body.Close()
-//
-//	body, err := io.ReadAll(res.Body)
-//
-//	if res.StatusCode > 299 {
-//		err = fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-//		return locResponse, err
-//	}
-//	if err != nil {
-//		return locResponse, err
-//	}
-//
+
 	c.cache.Add(target, body)
 	
 	err = json.Unmarshal(body, &locResponse)
@@ -129,6 +129,36 @@ func (c *Client) ExploreLocationResponse(areaName string) (ExploreAreaResponse, 
 	return locResponse, nil
 
 }
+
+func (c *Client) FetchPokemonData(pokemonName string) (Pokemon, error) {
+	locResponse := Pokemon{}
+	target := strings.TrimSuffix(c.baseURL, "/location-area/") + "/pokemon/" + pokemonName + "/"
+	
+	val, ok := c.cache.Get(target)
+	if ok {
+		err := json.Unmarshal(val, &locResponse)
+		if err != nil {
+			return Pokemon{}, err
+		}
+		return locResponse, nil
+	}
+
+	body, err := c.HTTPGetResponse(target)
+	if err != nil {
+		return locResponse, err
+	}
+	
+	c.cache.Add(target, body)
+	
+	err = json.Unmarshal(body, &locResponse)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	return locResponse, nil
+
+}
+
 
 func (c *Client) HTTPGetResponse(target string) ([]byte, error) {
 	req, err := http.NewRequest("GET", target, nil)
@@ -154,3 +184,5 @@ func (c *Client) HTTPGetResponse(target string) ([]byte, error) {
 	}
 	return body, nil
 }
+
+

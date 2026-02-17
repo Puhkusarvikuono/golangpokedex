@@ -91,6 +91,16 @@ func getCommands() (map[string]cliCommand) {
 			description:	"Displays all Pokémon located in an area. Takes the name of the location area as an argument. Example: 'explore pastoria-city-area'.",
 			callback:			commandExplore,
 		},
+		"catch": {
+			name:					"catch",
+			description:	"Attemps to catch target Pokemon. Takes the name of the target pokemon as an argument. Example: 'catch pikachu'.\nCatch might fail. Catchrate depends on pokemon experience.",
+			callback:			commandCatch,
+		},
+		"inspect": {
+			name:					"inspect",
+			description:	"Inspect a Pokemon you have caught. Takes the name of the target pokemon as an argument. Example: 'inspect pikachu'.",
+			callback:			commandInspect,
+		},
 	}
 	return commands
 }
