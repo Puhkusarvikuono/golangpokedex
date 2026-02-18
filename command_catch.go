@@ -15,7 +15,8 @@ func commandCatch(c *Config, args []string) error {
 
 	res, err := c.Pokeapi.FetchPokemonData(target)
 	if err != nil {
-		return err
+		message := fmt.Sprintf("Could not find a Pokemon named %s", target)
+		return errors.New(message)
 	}	
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", target)

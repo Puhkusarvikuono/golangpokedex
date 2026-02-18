@@ -101,6 +101,11 @@ func getCommands() (map[string]cliCommand) {
 			description:	"Inspect a Pokemon you have caught. Takes the name of the target pokemon as an argument. Example: 'inspect pikachu'.",
 			callback:			commandInspect,
 		},
+		"pokedex": {
+			name:					"pokedex",
+			description:	"List the Pokemon you have in your Pokedex.",
+			callback:			commandPokedex,
+		},
 	}
 	return commands
 }
